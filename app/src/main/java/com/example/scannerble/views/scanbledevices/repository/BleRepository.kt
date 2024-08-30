@@ -31,14 +31,32 @@ class BleRepository(private val context: Context) {
     val connectionStatus: LiveData<Boolean> get() = _connectionStatus
 
     private val devices: MutableList<ScannedBleDevice> = mutableListOf()
-    private var bluetoothGatt: BluetoothGatt? = null
 
     init {
         _scannedDevices.value = devices
     }
 
     fun startScanning() {
+        val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        val bluetoothAdapter = bluetoothManager.adapter
 
+        if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled) {
+            Log.e("BLE", "Bluetooth is not enabled or not available")
+            return
+        }
+
+        val bleScanner = bluetoothAdapter.bluetoothLeScanner
+        if (bleScanner == null) {
+            Log.e("BLE", "BLE Scanner is null")
+            return
+        }
+
+        if (ActivityCompat.checkSelfPermission(
+                context, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED
+        ) {
+            Log.e("BLE", "Permissions not granted")
+            return
+        }
         val scanSettings = ScanSettings.Builder()
             .setScanMode(ScanSettings.SCAN_MODE_BALANCED)
             .build()

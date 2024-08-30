@@ -11,7 +11,6 @@ class BleViewModel(application: Application) : AndroidViewModel(application) {
     private val bleRepository = BleRepository(application)
 
     val scannedDevices: LiveData<List<ScannedBleDevice>> = bleRepository.scannedDevices
-    val connectionStatus: LiveData<Boolean> = bleRepository.connectionStatus
 
     fun startScanning() {
         bleRepository.startScanning()

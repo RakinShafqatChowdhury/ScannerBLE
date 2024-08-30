@@ -2,12 +2,17 @@ package com.example.scannerble.views.scanbledevices.ui
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -42,6 +47,7 @@ class ScanBleDevicesActivity : AppCompatActivity(), BleDeviceAdapter.ScannedBleD
 
     private lateinit var bleViewModel: BleViewModel
     private lateinit var bleDeviceAdapter: BleDeviceAdapter
+    private lateinit var enableBluetoothLauncher: ActivityResultLauncher<Intent>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,23 +67,35 @@ class ScanBleDevicesActivity : AppCompatActivity(), BleDeviceAdapter.ScannedBleD
             checkAndRequestBluetoothPermissions()
         }
 
+        bleDeviceAdapter = BleDeviceAdapter(mutableListOf(), this)
+            .apply {
+                setHasStableIds(true)
+            }
+
+        binding.scannedDevicesListRV.apply {
+            setHasFixedSize(true)
+            itemAnimator = null
+            layoutManager = LinearLayoutManager(
+                context,
+                LinearLayoutManager.VERTICAL,
+                false
+            )
+            adapter = bleDeviceAdapter
+        }
         // Observe scanned devices
         bleViewModel.scannedDevices.observe(this) { devices ->
-            bleDeviceAdapter =
-                BleDeviceAdapter(mutableListOf(), this)
-                    .apply {
-                        setHasStableIds(true)
-                        updateDevices(devices)
-                    }
-            binding.scannedDevicesListRV.apply {
-                setHasFixedSize(true)
-                itemAnimator = null
-                layoutManager = LinearLayoutManager(
-                    context,
-                    LinearLayoutManager.VERTICAL,
-                    false
-                )
-                adapter = bleDeviceAdapter
+            bleDeviceAdapter.updateDevices(devices)
+
+        }
+
+        enableBluetoothLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                Toast.makeText(this, "Bluetooth enabled", Toast.LENGTH_SHORT).show()
+                bleViewModel.startScanning()
+            } else {
+                enableBluetoothOption()
             }
         }
 
@@ -116,6 +134,7 @@ class ScanBleDevicesActivity : AppCompatActivity(), BleDeviceAdapter.ScannedBleD
                 grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }
 
             if (allPermissionsGranted) {
+                Toast.makeText(this, "Bluetooth permissions granted", Toast.LENGTH_SHORT).show()
                 onBluetoothPermissionsGranted()
             } else {
                 onBluetoothPermissionsDenied()
@@ -124,13 +143,10 @@ class ScanBleDevicesActivity : AppCompatActivity(), BleDeviceAdapter.ScannedBleD
     }
 
     private fun onBluetoothPermissionsGranted() {
-        Toast.makeText(this, "Bluetooth permissions granted", Toast.LENGTH_SHORT).show()
         if (isBluetoothEnabled()) {
-            Toast.makeText(this, "Bluetooth is enabled", Toast.LENGTH_SHORT).show()
-            bleViewModel.stopScanning()
             bleViewModel.startScanning()
         } else
-            Toast.makeText(this, "Bluetooth is disabled", Toast.LENGTH_SHORT).show()
+            enableBluetoothOption()
     }
 
     private fun onBluetoothPermissionsDenied() {
@@ -144,8 +160,15 @@ class ScanBleDevicesActivity : AppCompatActivity(), BleDeviceAdapter.ScannedBleD
         return bluetoothAdapter.isEnabled
     }
 
+    private fun enableBluetoothOption() {
+        val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+        enableBluetoothLauncher.launch(enableBtIntent)
+    }
+
+
     @SuppressLint("MissingPermission")
     override fun deviceClickListener(device: ScannedBleDevice) {
         Toast.makeText(this, "Device clicked: ${device.device?.name}", Toast.LENGTH_SHORT).show()
     }
+
 }
