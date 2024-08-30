@@ -38,7 +38,7 @@
             tools:listitem="@layout/ble_devices_item" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/uploadPrescriptionBtn"
+            android:id="@+id/scanBleDevicesBtn"
             android:layout_width="wrap_content"
             android:layout_height="@dimen/_30sdp"
             android:layout_alignParentBottom="true"
