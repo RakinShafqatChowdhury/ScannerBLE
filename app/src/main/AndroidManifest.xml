@@ -20,6 +20,9 @@
         android:theme="@style/Theme.ScannerBLE"
         tools:targetApi="31">
         <activity
+            android:name=".views.connectedbledevice.ui.ConnectBleActivity"
+            android:exported="false" />
+        <activity
             android:name=".views.scanbledevices.ui.ScanBleDevicesActivity"
             android:exported="false" />
         <activity

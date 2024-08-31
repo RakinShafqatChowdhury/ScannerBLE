@@ -13,6 +13,7 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -22,6 +23,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.scannerble.R
 import com.example.scannerble.databinding.ActivityScanBleDevicesBinding
+import com.example.scannerble.views.connectedbledevice.ui.ConnectBleActivity
 import com.example.scannerble.views.scanbledevices.adapters.BleDeviceAdapter
 import com.example.scannerble.views.scanbledevices.model.ScannedBleDevice
 import com.example.scannerble.views.scanbledevices.viewmodel.BleViewModel
@@ -45,7 +47,7 @@ class ScanBleDevicesActivity : AppCompatActivity(), BleDeviceAdapter.ScannedBleD
 
     }.toTypedArray()
 
-    private lateinit var bleViewModel: BleViewModel
+    private val bleViewModel: BleViewModel by viewModels()
     private lateinit var bleDeviceAdapter: BleDeviceAdapter
     private lateinit var enableBluetoothLauncher: ActivityResultLauncher<Intent>
 
@@ -60,8 +62,6 @@ class ScanBleDevicesActivity : AppCompatActivity(), BleDeviceAdapter.ScannedBleD
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-
-        bleViewModel = ViewModelProvider(this)[BleViewModel::class.java]
 
         binding.scanBleDevicesBtn.setOnClickListener {
             checkAndRequestBluetoothPermissions()
@@ -169,6 +169,9 @@ class ScanBleDevicesActivity : AppCompatActivity(), BleDeviceAdapter.ScannedBleD
     @SuppressLint("MissingPermission")
     override fun deviceClickListener(device: ScannedBleDevice) {
         Toast.makeText(this, "Device clicked: ${device.device?.name}", Toast.LENGTH_SHORT).show()
+        val intent = Intent(this, ConnectBleActivity::class.java)
+        intent.putExtra("ScannedBleDevice", device)
+        startActivity(intent)
     }
 
 }
