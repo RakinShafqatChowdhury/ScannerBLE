@@ -174,4 +174,9 @@ class ScanBleDevicesActivity : AppCompatActivity(), BleDeviceAdapter.ScannedBleD
         startActivity(intent)
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        bleViewModel.stopScanning()
+    }
+
 }
