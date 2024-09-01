@@ -2,7 +2,6 @@ package com.example.scannerble.views.scanbledevices.repository
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothManager
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
@@ -12,13 +11,14 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.scannerble.views.scanbledevices.model.ScannedBleDevice
 
-class BleRepository(private val context: Context) {
+class ScanBleRepository(private val context: Context) {
 
     private val bluetoothManager =
         context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
@@ -116,47 +116,7 @@ class BleRepository(private val context: Context) {
         }
 
         override fun onScanFailed(errorCode: Int) {
-            Log.e("BLE", "Scan failed with error: $errorCode")
+            Toast.makeText(context, "Scan failed", Toast.LENGTH_SHORT).show()
         }
     }
-
-    /*    @SuppressLint("MissingPermission")
-        fun connectToDevice(device: BluetoothDevice) {
-            bluetoothGatt = device.connectGatt(context, false, bluetoothGattCallback)
-        }
-
-        private val bluetoothGattCallback = object : BluetoothGattCallback() {
-            override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
-                if (newState == BluetoothProfile.STATE_CONNECTED) {
-                    _connectionStatus.postValue(true)
-                    gatt?.discoverServices()
-                } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                    _connectionStatus.postValue(false)
-                    bluetoothGatt?.close()
-                }
-            }
-
-            override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
-                if (status == BluetoothGatt.GATT_SUCCESS) {
-                    gatt?.services?.forEach { service ->
-                        Log.d("BLE", "Service discovered: ${service.uuid}")
-                        service.characteristics.forEach { characteristic ->
-                            readCharacteristic(gatt, characteristic)
-                        }
-                    }
-                }
-            }
-
-            override fun onCharacteristicRead(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
-                if (status == BluetoothGatt.GATT_SUCCESS) {
-                    characteristic?.let {
-                        Log.d("BLE", "Characteristic read: ${it.uuid}, value: ${it.value}")
-                    }
-                }
-            }
-        }
-
-        private fun readCharacteristic(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
-            gatt.readCharacteristic(characteristic)
-        }*/
 }

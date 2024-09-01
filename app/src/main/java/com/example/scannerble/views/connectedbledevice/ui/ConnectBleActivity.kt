@@ -4,10 +4,10 @@ import android.annotation.SuppressLint
 import android.bluetooth.BluetoothGattCharacteristic
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -15,15 +15,17 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.scannerble.R
 import com.example.scannerble.databinding.ActivityConnectBleBinding
-import com.example.scannerble.views.connectedbledevice.adapters.BleDeviceServiceAdapter
+import com.example.scannerble.views.connectedbledevice.adapters.BleDeviceCharacteristicsAdapter
 import com.example.scannerble.views.connectedbledevice.viewmodel.ConnectBleViewModel
 import com.example.scannerble.views.scanbledevices.model.ScannedBleDevice
 
-class ConnectBleActivity : AppCompatActivity(), BleDeviceServiceAdapter.BleServiceClickListener {
+class ConnectBleActivity : AppCompatActivity(),
+    BleDeviceCharacteristicsAdapter.CharacteristicReadWriteClickListener {
 
     private lateinit var binding: ActivityConnectBleBinding
     private val connectBleViewModel: ConnectBleViewModel by viewModels()
-    private lateinit var bleDeviceServiceAdapter: BleDeviceServiceAdapter
+    private lateinit var bleDeviceCharacteristicsAdapter: BleDeviceCharacteristicsAdapter
+    private val characteristicsList = mutableListOf<BluetoothGattCharacteristic>()
 
     @SuppressLint("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,6 +50,7 @@ class ConnectBleActivity : AppCompatActivity(), BleDeviceServiceAdapter.BleServi
         if (obj != null) {
             binding.bleDeviceName.text = obj.device?.name
             binding.bleDeviceAddress.text = obj.device?.address
+
             obj.device?.let { connectBleViewModel.connectToDevice(it) }
         }
 
@@ -60,33 +63,55 @@ class ConnectBleActivity : AppCompatActivity(), BleDeviceServiceAdapter.BleServi
             } else {
                 binding.connectStatus.setTextColor(ContextCompat.getColor(this, R.color.red_700))
                 Toast.makeText(this, "Device Disconnected", Toast.LENGTH_SHORT).show()
+                finish()
             }
             binding.connectStatus.text = it
         }
 
-        connectBleViewModel.services.observe(this) {
-            if (it != null) {
-                Toast.makeText(this, "Services discovered", Toast.LENGTH_SHORT).show()
+        connectBleViewModel.services.observe(this) {services->
+            if (services != null) {
 
-                bleDeviceServiceAdapter = BleDeviceServiceAdapter(it, this)
+                for (service in services) {
+                    for (characteristic in service.characteristics) {
+                        characteristicsList.add(characteristic)
+                    }
+                }
+
+                bleDeviceCharacteristicsAdapter = BleDeviceCharacteristicsAdapter(characteristicsList, this)
                     .apply {
                         setHasStableIds(true)
                     }
                 binding.scannedDeviceServicesListRV.apply {
                     setHasFixedSize(true)
-                    itemAnimator = null
                     layoutManager = LinearLayoutManager(
                         context,
                         LinearLayoutManager.VERTICAL,
                         false
                     )
-                    adapter = bleDeviceServiceAdapter
+                    adapter = bleDeviceCharacteristicsAdapter
                 }
             } else {
                 Toast.makeText(this, "Services not discovered", Toast.LENGTH_SHORT).show()
             }
         }
 
+        connectBleViewModel.characteristicValue.observe(this) {
+            Toast.makeText(this, "Value: $it", Toast.LENGTH_SHORT).show()
+            showValueDialog(it)
+        }
+
+    }
+
+    private fun showValueDialog(value: String?) {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Value")
+        builder.setMessage(value)
+        builder.setPositiveButton("OK") { dialog, _ ->
+            dialog.dismiss()
+        }
+
+        val alertDialog = builder.create()
+        alertDialog.show()
     }
 
     override fun onDestroy() {
@@ -94,7 +119,14 @@ class ConnectBleActivity : AppCompatActivity(), BleDeviceServiceAdapter.BleServi
         connectBleViewModel.disconnect()
     }
 
-    override fun serviceClickListener(characteristicItems: List<BluetoothGattCharacteristic>) {
+    override fun readClickListener(characteristicItem: BluetoothGattCharacteristic) {
+        connectBleViewModel.readCharacteristic(
+            characteristicItem.service.uuid,
+            characteristicItem.uuid
+        )
+    }
+
+    override fun writeClickListener(characteristicItem: BluetoothGattCharacteristic) {
 
     }
 }

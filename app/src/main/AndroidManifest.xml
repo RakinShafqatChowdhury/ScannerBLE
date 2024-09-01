@@ -22,11 +22,9 @@
         <activity
             android:name=".views.connectedbledevice.ui.ConnectBleActivity"
             android:exported="false" />
+
         <activity
             android:name=".views.scanbledevices.ui.ScanBleDevicesActivity"
-            android:exported="false" />
-        <activity
-            android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

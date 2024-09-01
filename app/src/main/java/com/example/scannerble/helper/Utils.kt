@@ -1,53 +1,67 @@
 package com.example.scannerble.helper
 
+import android.bluetooth.BluetoothGattCharacteristic
+
 object Utils {
-    fun getGattServiceName(uuid: String): String {
-        val serviceNames = mapOf(
-            "00001800-0000-1000-8000-00805f9b34fb" to "Generic Access",
-            "00001801-0000-1000-8000-00805f9b34fb" to "Generic Attribute",
-            "00001802-0000-1000-8000-00805f9b34fb" to "Immediate Alert",
-            "00001803-0000-1000-8000-00805f9b34fb" to "Link Loss",
-            "00001804-0000-1000-8000-00805f9b34fb" to "Tx Power",
-            "00001805-0000-1000-8000-00805f9b34fb" to "Current Time Service",
-            "00001806-0000-1000-8000-00805f9b34fb" to "Reference Time Update Service",
-            "00001807-0000-1000-8000-00805f9b34fb" to "Next DST Change Service",
-            "00001808-0000-1000-8000-00805f9b34fb" to "Glucose",
-            "00001809-0000-1000-8000-00805f9b34fb" to "Health Thermometer",
-            "0000180a-0000-1000-8000-00805f9b34fb" to "Device Information",
-            "0000180d-0000-1000-8000-00805f9b34fb" to "Heart Rate Service",
-            "0000180e-0000-1000-8000-00805f9b34fb" to "Phone Alert Status Service",
-            "0000180f-0000-1000-8000-00805f9b34fb" to "Battery Service",
-            "00001810-0000-1000-8000-00805f9b34fb" to "Blood Pressure Service",
-            "00001811-0000-1000-8000-00805f9b34fb" to "Alert Notification Service",
-            "00001812-0000-1000-8000-00805f9b34fb" to "Human Interface Device",
-            "00001813-0000-1000-8000-00805f9b34fb" to "Scan Parameters",
-            "00001814-0000-1000-8000-00805f9b34fb" to "Running Speed and Cadence",
-            "00001815-0000-1000-8000-00805f9b34fb" to "Automation IO",
-            "00001816-0000-1000-8000-00805f9b34fb" to "Cycling Speed and Cadence",
-            "00001818-0000-1000-8000-00805f9b34fb" to "Cycling Power",
-            "00001819-0000-1000-8000-00805f9b34fb" to "Location and Navigation",
-            "0000181a-0000-1000-8000-00805f9b34fb" to "Environmental Sensing",
-            "0000181b-0000-1000-8000-00805f9b34fb" to "Body Composition",
-            "0000181c-0000-1000-8000-00805f9b34fb" to "User Data",
-            "0000181d-0000-1000-8000-00805f9b34fb" to "Weight Scale",
-            "0000181e-0000-1000-8000-00805f9b34fb" to "Bond Management",
-            "0000181f-0000-1000-8000-00805f9b34fb" to "Continuous Glucose Monitoring",
-            "00001820-0000-1000-8000-00805f9b34fb" to "Internet Protocol Support",
-            "00001821-0000-1000-8000-00805f9b34fb" to "Indoor Positioning",
-            "00001822-0000-1000-8000-00805f9b34fb" to "Pulse Oximeter",
-            "00001823-0000-1000-8000-00805f9b34fb" to "HTTP Proxy",
-            "00001824-0000-1000-8000-00805f9b34fb" to "Transport Discovery",
-            "00001825-0000-1000-8000-00805f9b34fb" to "Object Transfer Service",
-            "00001826-0000-1000-8000-00805f9b34fb" to "Fitness Machine",
-            "00001827-0000-1000-8000-00805f9b34fb" to "Mesh Provisioning",
-            "00001828-0000-1000-8000-00805f9b34fb" to "Mesh Proxy",
-            "00001829-0000-1000-8000-00805f9b34fb" to "Reconnection Configuration",
-            "0000182a-0000-1000-8000-00805f9b34fb" to "Insulin Delivery",
-            "00001830-0000-1000-8000-00805f9b34fb" to "Binary Sensor",
-            "00001831-0000-1000-8000-00805f9b34fb" to "Emergency Configuration",
-            "00001832-0000-1000-8000-00805f9b34fb" to "Asset Tracking"
+
+    fun getCharacteristicName(uuid: String): String {
+        val characteristicName = mapOf(
+            // Generic Access Profile
+            "00002a00-0000-1000-8000-00805f9b34fb" to "Device Name",
+            "00002a01-0000-1000-8000-00805f9b34fb" to "Appearance",
+            "00002a02-0000-1000-8000-00805f9b34fb" to "Peripheral Privacy Flag",
+            "00002a03-0000-1000-8000-00805f9b34fb" to "Reconnection Address",
+            "00002a04-0000-1000-8000-00805f9b34fb" to "Peripheral Preferred Connection Parameters",
+
+            // Generic Attribute Profile
+            "00002a05-0000-1000-8000-00805f9b34fb" to "Service Changed",
+
+            // Device Information
+            "00002a23-0000-1000-8000-00805f9b34fb" to "System ID",
+            "00002a24-0000-1000-8000-00805f9b34fb" to "Model Number String",
+            "00002a25-0000-1000-8000-00805f9b34fb" to "Serial Number String",
+            "00002a26-0000-1000-8000-00805f9b34fb" to "Firmware Revision String",
+            "00002a27-0000-1000-8000-00805f9b34fb" to "Hardware Revision String",
+            "00002a28-0000-1000-8000-00805f9b34fb" to "Software Revision String",
+            "00002a29-0000-1000-8000-00805f9b34fb" to "Manufacturer Name String",
+            "00002a2a-0000-1000-8000-00805f9b34fb" to "IEEE 11073-20601 Regulatory Certification Data List",
+            "00002a50-0000-1000-8000-00805f9b34fb" to "PnP ID",
+
+            // Heart Rate
+            "00002a37-0000-1000-8000-00805f9b34fb" to "Heart Rate Measurement",
+            "00002a38-0000-1000-8000-00805f9b34fb" to "Body Sensor Location",
+            "00002a39-0000-1000-8000-00805f9b34fb" to "Heart Rate Control Point",
+
+            // Battery Service
+            "00002a19-0000-1000-8000-00805f9b34fb" to "Battery Level",
+
+            // Health Thermometer
+            "00002a1c-0000-1000-8000-00805f9b34fb" to "Temperature Measurement",
+            "00002a1d-0000-1000-8000-00805f9b34fb" to "Temperature Type",
+            "00002a1e-0000-1000-8000-00805f9b34fb" to "Intermediate Temperature",
+
+            // Blood Pressure
+            "00002a35-0000-1000-8000-00805f9b34fb" to "Blood Pressure Measurement",
+            "00002a36-0000-1000-8000-00805f9b34fb" to "Intermediate Cuff Pressure",
+
+            // Cycling Speed and Cadence
+            "00002a5b-0000-1000-8000-00805f9b34fb" to "CSC Measurement",
+            "00002a5c-0000-1000-8000-00805f9b34fb" to "CSC Feature",
+
+            // Glucose
+            "00002a18-0000-1000-8000-00805f9b34fb" to "Glucose Measurement",
+            "00002a34-0000-1000-8000-00805f9b34fb" to "Glucose Measurement Context",
+            "00002a51-0000-1000-8000-00805f9b34fb" to "Glucose Feature",
+
+            // Environmental Sensing
+            "00002a6e-0000-1000-8000-00805f9b34fb" to "Temperature",
+            "00002a6f-0000-1000-8000-00805f9b34fb" to "Humidity",
+            "00002a70-0000-1000-8000-00805f9b34fb" to "Pressure"
+
+            // Add more known UUIDs as needed
         )
 
-        return serviceNames[uuid] ?: "Unknown Service"
+        return characteristicName[uuid] ?: "Unknown Characteristic ($uuid)"
     }
+
 }

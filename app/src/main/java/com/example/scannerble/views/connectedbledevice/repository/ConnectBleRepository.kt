@@ -4,13 +4,18 @@ import android.Manifest
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCallback
+import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothProfile
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import java.util.Base64
+import java.util.UUID
 
 class ConnectBleRepository(private val context: Context) {
 
@@ -21,6 +26,9 @@ class ConnectBleRepository(private val context: Context) {
 
     private val _connectionState = MutableLiveData<String>()
     val connectionState: LiveData<String> get() = _connectionState
+
+    private val _characteristicValue = MutableLiveData<String?>()
+    val characteristicValue: LiveData<String?> = _characteristicValue
 
     fun connectToDevice(device: BluetoothDevice) {
         if (ActivityCompat.checkSelfPermission(
@@ -52,6 +60,7 @@ class ConnectBleRepository(private val context: Context) {
 
                 BluetoothProfile.STATE_DISCONNECTED -> {
                     _connectionState.postValue("Disconnected")
+                    bluetoothGatt?.close()
                 }
             }
         }
@@ -62,6 +71,38 @@ class ConnectBleRepository(private val context: Context) {
                 _services.postValue(gatt.services)
             } else {
                 _services.postValue(null)
+            }
+        }
+
+        override fun onCharacteristicRead(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                val value = characteristic?.value?.let { byteArray ->
+                    if (byteArray.isNotEmpty()) {
+                        String(byteArray, Charsets.UTF_8)
+                    } else {
+                        "Empty or null value"
+                    }
+                } ?: "Unknown"
+                _characteristicValue.postValue(value)
+            } else {
+                _characteristicValue.postValue("Value read failed")
+            }
+        }
+    }
+
+    fun readCharacteristicValue(serviceUuid: UUID, characteristicUuid: UUID) {
+        bluetoothGatt?.let { gatt ->
+            val service = gatt.getService(serviceUuid)
+            val characteristic = service?.getCharacteristic(characteristicUuid)
+            if (characteristic != null) {
+                if (ActivityCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.BLUETOOTH_CONNECT
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    return
+                }
+                gatt.readCharacteristic(characteristic)
             }
         }
     }

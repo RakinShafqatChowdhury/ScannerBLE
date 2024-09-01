@@ -4,11 +4,11 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import com.example.scannerble.views.scanbledevices.model.ScannedBleDevice
-import com.example.scannerble.views.scanbledevices.repository.BleRepository
+import com.example.scannerble.views.scanbledevices.repository.ScanBleRepository
 
-class BleViewModel(application: Application) : AndroidViewModel(application) {
+class ScanBleViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val bleRepository = BleRepository(application)
+    private val bleRepository = ScanBleRepository(application)
 
     val scannedDevices: LiveData<List<ScannedBleDevice>> = bleRepository.scannedDevices
 

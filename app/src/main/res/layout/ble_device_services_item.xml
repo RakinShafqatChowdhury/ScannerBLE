@@ -30,6 +30,35 @@
             android:textSize="@dimen/_9ssp" />
 
 
+        <LinearLayout
+            android:id="@+id/bleDeviceCharacteristicsReadWriteLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:visibility="gone"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/readValueBtn"
+                android:layout_width="@dimen/_75sdp"
+                android:layout_height="@dimen/_35sdp"
+                android:text="Read"
+                android:visibility="gone"
+                android:textColor="@color/white"/>
+
+            <Button
+                android:id="@+id/writeValueBtn"
+                android:layout_width="@dimen/_75sdp"
+                android:layout_height="@dimen/_35sdp"
+                android:layout_marginStart="@dimen/_2sdp"
+                android:text="Write"
+                android:visibility="gone"
+                android:textColor="@color/white"/>
+
+
+        </LinearLayout>
+
+
         <View
             android:layout_width="match_parent"
             android:layout_height="@dimen/_1sdp"
