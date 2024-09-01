@@ -2,6 +2,7 @@ package com.example.scannerble.views.connectedbledevice.viewmodel
 
 import android.app.Application
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattService
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -12,29 +13,39 @@ import java.util.UUID
 
 class ConnectBleViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val bleRepository: ConnectBleRepository = ConnectBleRepository(application)
+    private val connectBleRepository: ConnectBleRepository = ConnectBleRepository(application)
 
-    val services: LiveData<List<BluetoothGattService>?> = bleRepository.services
-    val connectionState: LiveData<String> = bleRepository.connectionState
-    val characteristicValue: LiveData<String?> = bleRepository.characteristicValue
+    val services: LiveData<List<BluetoothGattService>?> = connectBleRepository.services
+    val connectionState: LiveData<String> = connectBleRepository.connectionState
+    val characteristicValue: LiveData<String?> = connectBleRepository.characteristicValue
+    val writeCharacteristicResponse: LiveData<String?> = connectBleRepository.writeCharacteristicResponse
 
 
     fun connectToDevice(device: BluetoothDevice) {
         viewModelScope.launch {
-            bleRepository.connectToDevice(device)
+            connectBleRepository.connectToDevice(device)
         }
     }
 
-    // Delegate disconnecting to repository
     fun disconnect() {
         viewModelScope.launch {
-            bleRepository.disconnect()
+            connectBleRepository.disconnect()
         }
     }
 
     fun readCharacteristic(serviceUuid: UUID, characteristicUuid: UUID) {
         viewModelScope.launch {
-            bleRepository.readCharacteristicValue(serviceUuid, characteristicUuid)
+            connectBleRepository.readCharacteristicValue(serviceUuid, characteristicUuid)
+        }
+    }
+
+    fun writeCharacteristic(
+        characteristic: BluetoothGattCharacteristic,
+        input: ByteArray,
+        writeTypeDefault: Int
+    ) {
+        viewModelScope.launch {
+            connectBleRepository.writeToCharacteristic(characteristic, input, writeTypeDefault)
         }
     }
 

@@ -3,8 +3,10 @@ package com.example.scannerble.views.scanbledevices.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.viewModelScope
 import com.example.scannerble.views.scanbledevices.model.ScannedBleDevice
 import com.example.scannerble.views.scanbledevices.repository.ScanBleRepository
+import kotlinx.coroutines.launch
 
 class ScanBleViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -13,10 +15,14 @@ class ScanBleViewModel(application: Application) : AndroidViewModel(application)
     val scannedDevices: LiveData<List<ScannedBleDevice>> = bleRepository.scannedDevices
 
     fun startScanning() {
-        bleRepository.startScanning()
+        viewModelScope.launch {
+            bleRepository.startScanning()
+        }
     }
 
     fun stopScanning() {
-        bleRepository.stopScanning()
+        viewModelScope.launch {
+            bleRepository.stopScanning()
+        }
     }
 }

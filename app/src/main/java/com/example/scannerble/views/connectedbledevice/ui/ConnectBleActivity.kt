@@ -68,7 +68,7 @@ class ConnectBleActivity : AppCompatActivity(),
             binding.connectStatus.text = it
         }
 
-        connectBleViewModel.services.observe(this) {services->
+        connectBleViewModel.services.observe(this) { services ->
             if (services != null) {
 
                 for (service in services) {
@@ -77,10 +77,11 @@ class ConnectBleActivity : AppCompatActivity(),
                     }
                 }
 
-                bleDeviceCharacteristicsAdapter = BleDeviceCharacteristicsAdapter(characteristicsList, this)
-                    .apply {
-                        setHasStableIds(true)
-                    }
+                bleDeviceCharacteristicsAdapter =
+                    BleDeviceCharacteristicsAdapter(characteristicsList, this)
+                        .apply {
+                            setHasStableIds(true)
+                        }
                 binding.scannedDeviceServicesListRV.apply {
                     setHasFixedSize(true)
                     layoutManager = LinearLayoutManager(
@@ -96,8 +97,12 @@ class ConnectBleActivity : AppCompatActivity(),
         }
 
         connectBleViewModel.characteristicValue.observe(this) {
-            Toast.makeText(this, "Value: $it", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "$it", Toast.LENGTH_SHORT).show()
             showValueDialog(it)
+        }
+
+        connectBleViewModel.writeCharacteristicResponse.observe(this) {
+            Toast.makeText(this, "$it", Toast.LENGTH_SHORT).show()
         }
 
     }
@@ -127,6 +132,7 @@ class ConnectBleActivity : AppCompatActivity(),
     }
 
     override fun writeClickListener(characteristicItem: BluetoothGattCharacteristic) {
-
+        val input = "Hello World".encodeToByteArray()
+        connectBleViewModel.writeCharacteristic(characteristicItem, input, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT)
     }
 }

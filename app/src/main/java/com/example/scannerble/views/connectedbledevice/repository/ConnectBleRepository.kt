@@ -10,6 +10,7 @@ import android.bluetooth.BluetoothProfile
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.LiveData
@@ -29,6 +30,9 @@ class ConnectBleRepository(private val context: Context) {
 
     private val _characteristicValue = MutableLiveData<String?>()
     val characteristicValue: LiveData<String?> = _characteristicValue
+
+    private val _writeCharacteristicResponse = MutableLiveData<String?>()
+    val writeCharacteristicResponse: LiveData<String?> = _writeCharacteristicResponse
 
     fun connectToDevice(device: BluetoothDevice) {
         if (ActivityCompat.checkSelfPermission(
@@ -74,18 +78,42 @@ class ConnectBleRepository(private val context: Context) {
             }
         }
 
-        override fun onCharacteristicRead(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
+        override fun onCharacteristicRead(
+            gatt: BluetoothGatt?,
+            characteristic: BluetoothGattCharacteristic?,
+            status: Int
+        ) {
+            when (status) {
+                BluetoothGatt.GATT_SUCCESS -> {
+                    val value = characteristic?.value?.let { byteArray ->
+                        if (byteArray.isNotEmpty()) {
+                            String(byteArray, Charsets.UTF_8)
+                        } else {
+                            "Empty or null value"
+                        }
+                    } ?: "Unknown"
+                    _characteristicValue.postValue(value)
+                }
+
+                BluetoothGatt.GATT_INSUFFICIENT_AUTHORIZATION -> {
+                    _characteristicValue.postValue("Insufficient authorization")
+                }
+
+                else -> {
+                    _characteristicValue.postValue("Value read failed")
+                }
+            }
+        }
+
+        override fun onCharacteristicWrite(
+            gatt: BluetoothGatt?,
+            characteristic: BluetoothGattCharacteristic?,
+            status: Int
+        ) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                val value = characteristic?.value?.let { byteArray ->
-                    if (byteArray.isNotEmpty()) {
-                        String(byteArray, Charsets.UTF_8)
-                    } else {
-                        "Empty or null value"
-                    }
-                } ?: "Unknown"
-                _characteristicValue.postValue(value)
+                _writeCharacteristicResponse.postValue("Value written successfully")
             } else {
-                _characteristicValue.postValue("Value read failed")
+                _writeCharacteristicResponse.postValue("Value write failed")
             }
         }
     }
@@ -105,6 +133,29 @@ class ConnectBleRepository(private val context: Context) {
                 gatt.readCharacteristic(characteristic)
             }
         }
+    }
+
+    fun writeToCharacteristic(
+        characteristic: BluetoothGattCharacteristic,
+        value: ByteArray,
+        writeType: Int
+    ) {
+        if (ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.BLUETOOTH_CONNECT
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+        if (bluetoothGatt != null && bluetoothGatt!!.connect())
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                bluetoothGatt?.writeCharacteristic(characteristic, value, writeType)
+            } else {
+                characteristic.value = value
+                bluetoothGatt?.writeCharacteristic(characteristic)
+            }
+        else
+            _writeCharacteristicResponse.postValue("Gatt service not connected")
     }
 
     // Disconnect from the device
