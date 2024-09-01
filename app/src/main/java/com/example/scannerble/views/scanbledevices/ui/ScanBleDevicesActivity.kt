@@ -97,7 +97,7 @@ class ScanBleDevicesActivity : AppCompatActivity(), BleDeviceAdapter.ScannedBleD
                 Toast.makeText(this, "Bluetooth enabled", Toast.LENGTH_SHORT).show()
                 bleViewModel.startScanning()
             } else {
-                enableBluetoothOption()
+                Toast.makeText(this, "Please turn on bluetooth", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -148,7 +148,7 @@ class ScanBleDevicesActivity : AppCompatActivity(), BleDeviceAdapter.ScannedBleD
         if (isBluetoothEnabled()) {
             bleViewModel.startScanning()
         } else
-            Toast.makeText(this, "Please turn on bluetooth", Toast.LENGTH_SHORT).show()
+            enableBluetoothOption()
     }
 
     private fun onBluetoothPermissionsDenied() {

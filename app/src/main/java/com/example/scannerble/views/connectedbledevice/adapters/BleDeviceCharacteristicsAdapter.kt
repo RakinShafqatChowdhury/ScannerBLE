@@ -33,11 +33,15 @@ class BleDeviceCharacteristicsAdapter(
         val isReadable = properties and BluetoothGattCharacteristic.PROPERTY_READ != 0
         val isWritable =
             properties and (BluetoothGattCharacteristic.PROPERTY_WRITE or BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) != 0
+        val isWritableNoResponse =
+            properties and BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE != 0
+
 
         holder.bleDeviceCharacteristicsReadWriteLayout.visibility =
             if (isReadable || isWritable) View.VISIBLE else View.GONE
 
         holder.bleServiceAddress.text = when {
+            isReadable && isWritable && isWritableNoResponse -> "Readable,Writable,Write No Response"
             isReadable && isWritable -> "Readable,Writable"
             isReadable -> "Readable"
             isWritable -> "Writable"

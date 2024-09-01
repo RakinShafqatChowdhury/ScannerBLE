@@ -4,6 +4,9 @@ import android.annotation.SuppressLint
 import android.bluetooth.BluetoothGattCharacteristic
 import android.os.Build
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -97,7 +100,6 @@ class ConnectBleActivity : AppCompatActivity(),
         }
 
         connectBleViewModel.characteristicValue.observe(this) {
-            Toast.makeText(this, "$it", Toast.LENGTH_SHORT).show()
             showValueDialog(it)
         }
 
@@ -119,6 +121,28 @@ class ConnectBleActivity : AppCompatActivity(),
         alertDialog.show()
     }
 
+    private fun showDialogForDataWrite(characteristicItem: BluetoothGattCharacteristic) {
+        val dialogView: View = LayoutInflater.from(this).inflate(R.layout.write_data_layout, null)
+
+        val editText = dialogView.findViewById<EditText>(R.id.writeDataET)
+
+        // Build the dialog
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setPositiveButton("Send") { dialogInterface, _ ->
+
+                val input = editText.text.toString().toByteArray()
+                connectBleViewModel.writeCharacteristic(characteristicItem, input, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT)
+                dialogInterface.dismiss()
+            }
+            .setNegativeButton("Cancel") { dialogInterface, _ ->
+                dialogInterface.dismiss()
+            }
+            .create()
+
+        dialog.show()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         connectBleViewModel.disconnect()
@@ -132,7 +156,6 @@ class ConnectBleActivity : AppCompatActivity(),
     }
 
     override fun writeClickListener(characteristicItem: BluetoothGattCharacteristic) {
-        val input = "Hello World".encodeToByteArray()
-        connectBleViewModel.writeCharacteristic(characteristicItem, input, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT)
+        showDialogForDataWrite(characteristicItem)
     }
 }

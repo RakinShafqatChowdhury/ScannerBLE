@@ -10,12 +10,9 @@ import android.bluetooth.BluetoothProfile
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
-import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import java.util.Base64
 import java.util.UUID
 
 class ConnectBleRepository(private val context: Context) {
@@ -158,7 +155,6 @@ class ConnectBleRepository(private val context: Context) {
             _writeCharacteristicResponse.postValue("Gatt service not connected")
     }
 
-    // Disconnect from the device
     fun disconnect() {
         if (ActivityCompat.checkSelfPermission(
                 context,
