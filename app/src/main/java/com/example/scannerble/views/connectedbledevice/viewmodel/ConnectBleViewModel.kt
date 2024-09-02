@@ -20,7 +20,6 @@ class ConnectBleViewModel(application: Application) : AndroidViewModel(applicati
     val characteristicValue: LiveData<String?> = connectBleRepository.characteristicValue
     val writeCharacteristicResponse: LiveData<String?> = connectBleRepository.writeCharacteristicResponse
 
-
     fun connectToDevice(device: BluetoothDevice) {
         viewModelScope.launch {
             connectBleRepository.connectToDevice(device)

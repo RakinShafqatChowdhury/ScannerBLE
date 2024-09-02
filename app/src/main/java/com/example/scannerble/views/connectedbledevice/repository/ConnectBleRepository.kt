@@ -10,6 +10,7 @@ import android.bluetooth.BluetoothProfile
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.SystemClock
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -89,6 +90,7 @@ class ConnectBleRepository(private val context: Context) {
                             "Empty or null value"
                         }
                     } ?: "Unknown"
+
                     _characteristicValue.postValue(value)
                 }
 

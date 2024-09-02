@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.EditText
@@ -36,6 +37,9 @@ class ConnectBleActivity : AppCompatActivity(),
     private val characteristicsList = mutableListOf<BluetoothGattCharacteristic>()
 
     private var readValueHeader: String = ""
+
+    private var startReadingTime: Long = 0
+    private var endReadingTime: Long = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -116,8 +120,12 @@ class ConnectBleActivity : AppCompatActivity(),
         }
 
         connectBleViewModel.characteristicValue.observe(this) { value ->
+            endReadingTime = SystemClock.elapsedRealtime()
+            val elapsedTimeInSec = (endReadingTime - startReadingTime)/1000.0
+            val bytesPerSec = value?.toByteArray()?.size?.div(elapsedTimeInSec)
+            val formattedBytesPerSec = String.format("%.2f", bytesPerSec ?: 0.0)
             Utils.dismissProgressDialog()
-            showValueDialog(value)
+            showValueDialog(value, formattedBytesPerSec)
         }
 
         connectBleViewModel.writeCharacteristicResponse.observe(this) { response ->
@@ -126,10 +134,10 @@ class ConnectBleActivity : AppCompatActivity(),
         }
     }
 
-    private fun showValueDialog(value: String?) {
+    private fun showValueDialog(value: String?, bytesPerSec: String) {
         val builder = AlertDialog.Builder(this)
         builder.setTitle(readValueHeader.ifEmpty { "Value" })
-        builder.setMessage(value)
+        builder.setMessage("$value\n\n(Data Transfer Speed: $bytesPerSec bytes/sec)")
         builder.setPositiveButton("OK") { dialog, _ ->
             dialog.dismiss()
         }
@@ -174,6 +182,7 @@ class ConnectBleActivity : AppCompatActivity(),
     ) {
         Utils.showProgressDialog(this)
         readValueHeader = characteristicName
+        startReadingTime = SystemClock.elapsedRealtime()
         connectBleViewModel.readCharacteristic(
             characteristicItem.service.uuid,
             characteristicItem.uuid

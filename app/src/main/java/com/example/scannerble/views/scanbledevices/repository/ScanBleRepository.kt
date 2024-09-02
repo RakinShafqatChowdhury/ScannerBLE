@@ -27,9 +27,6 @@ class ScanBleRepository(private val context: Context) {
     private val _scannedDevices = MutableLiveData<List<ScannedBleDevice>>()
     val scannedDevices: LiveData<List<ScannedBleDevice>> get() = _scannedDevices
 
-    private val _connectionStatus = MutableLiveData<Boolean>()
-    val connectionStatus: LiveData<Boolean> get() = _connectionStatus
-
     private val devices: MutableList<ScannedBleDevice> = mutableListOf()
 
     init {
@@ -37,11 +34,13 @@ class ScanBleRepository(private val context: Context) {
     }
 
     fun startScanning() {
-        val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        val bluetoothManager =
+            context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         val bluetoothAdapter = bluetoothManager.adapter
 
         if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled) {
-            Log.e("BLE", "Bluetooth is not enabled or not available")
+            Toast.makeText(context, "Bluetooth is not enabled or not available", Toast.LENGTH_SHORT)
+                .show()
             return
         }
 
@@ -52,9 +51,10 @@ class ScanBleRepository(private val context: Context) {
         }
 
         if (ActivityCompat.checkSelfPermission(
-                context, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED
+                context, Manifest.permission.BLUETOOTH_SCAN
+            ) != PackageManager.PERMISSION_GRANTED
         ) {
-            Log.e("BLE", "Permissions not granted")
+            Toast.makeText(context, "Permissions not granted", Toast.LENGTH_SHORT).show()
             return
         }
         val scanSettings = ScanSettings.Builder()
@@ -104,7 +104,8 @@ class ScanBleRepository(private val context: Context) {
 
             }
             // Update the device list
-            val existingDeviceIndex = devices.indexOfFirst { it.device?.address == scannedDevice.device?.address }
+            val existingDeviceIndex =
+                devices.indexOfFirst { it.device?.address == scannedDevice.device?.address }
             if (existingDeviceIndex != -1) {
                 // Update existing device
                 devices[existingDeviceIndex] = scannedDevice

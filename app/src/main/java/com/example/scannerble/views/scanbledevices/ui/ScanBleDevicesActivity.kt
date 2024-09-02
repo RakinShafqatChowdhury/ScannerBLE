@@ -50,11 +50,12 @@ class ScanBleDevicesActivity : AppCompatActivity(), BleDeviceAdapter.ScannedBleD
 
     }.toTypedArray()
 
-    private val bleViewModel: ScanBleViewModel by viewModels()
+    private val scanBleViewModel: ScanBleViewModel by viewModels()
     private lateinit var bleDeviceAdapter: BleDeviceAdapter
     private lateinit var enableBluetoothLauncher: ActivityResultLauncher<Intent>
 
     private var isScanning: Boolean = false
+    private var isFirstLaunch: Boolean = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -88,7 +89,7 @@ class ScanBleDevicesActivity : AppCompatActivity(), BleDeviceAdapter.ScannedBleD
             adapter = bleDeviceAdapter
         }
         // Observe scanned devices
-        bleViewModel.scannedDevices.observe(this) { devices ->
+        scanBleViewModel.scannedDevices.observe(this) { devices ->
             Utils.dismissProgressDialog()
             bleDeviceAdapter.updateDevices(devices)
         }
@@ -98,7 +99,7 @@ class ScanBleDevicesActivity : AppCompatActivity(), BleDeviceAdapter.ScannedBleD
         ) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
                 Toast.makeText(this, "Bluetooth enabled", Toast.LENGTH_SHORT).show()
-                bleViewModel.startScanning()
+                scanBleViewModel.startScanning()
             } else {
                 Toast.makeText(this, "Please turn on bluetooth", Toast.LENGTH_SHORT).show()
             }
@@ -149,7 +150,7 @@ class ScanBleDevicesActivity : AppCompatActivity(), BleDeviceAdapter.ScannedBleD
         if (isBluetoothEnabled()) {
             if (!isScanning) {
                 Utils.showProgressDialog(this, "Scanning...")
-                bleViewModel.startScanning()
+                scanBleViewModel.startScanning()
                 isScanning = true
             } else
                 Toast.makeText(this, "Scanning already in progress", Toast.LENGTH_SHORT).show()
@@ -188,23 +189,26 @@ class ScanBleDevicesActivity : AppCompatActivity(), BleDeviceAdapter.ScannedBleD
     override fun onPause() {
         super.onPause()
         if (isScanning) {
-            bleViewModel.stopScanning()
+            scanBleViewModel.stopScanning()
             isScanning = false
         }
     }
 
     override fun onResume() {
         super.onResume()
-        if (!isScanning) {
-            bleViewModel.startScanning()
-            isScanning = true
+        if (!isFirstLaunch) {
+            if (!isScanning) {
+                scanBleViewModel.startScanning()
+                isScanning = true
+            }
         }
+        isFirstLaunch = false
     }
 
     override fun onDestroy() {
         super.onDestroy()
         if (isScanning) {
-            bleViewModel.stopScanning()
+            scanBleViewModel.stopScanning()
             isScanning = false
         }
     }
