@@ -23,6 +23,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.scannerble.R
 import com.example.scannerble.databinding.ActivityScanBleDevicesBinding
+import com.example.scannerble.helper.Utils
 import com.example.scannerble.views.connectedbledevice.ui.ConnectBleActivity
 import com.example.scannerble.views.scanbledevices.adapters.BleDeviceAdapter
 import com.example.scannerble.views.scanbledevices.model.ScannedBleDevice
@@ -86,8 +87,8 @@ class ScanBleDevicesActivity : AppCompatActivity(), BleDeviceAdapter.ScannedBleD
         }
         // Observe scanned devices
         bleViewModel.scannedDevices.observe(this) { devices ->
+            Utils.dismissProgressDialog()
             bleDeviceAdapter.updateDevices(devices)
-
         }
 
         enableBluetoothLauncher = registerForActivityResult(
@@ -122,7 +123,6 @@ class ScanBleDevicesActivity : AppCompatActivity(), BleDeviceAdapter.ScannedBleD
         }
     }
 
-    // Handle the permission request result
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -146,6 +146,7 @@ class ScanBleDevicesActivity : AppCompatActivity(), BleDeviceAdapter.ScannedBleD
 
     private fun onBluetoothPermissionsGranted() {
         if (isBluetoothEnabled()) {
+            Utils.showProgressDialog(this, "Scanning...")
             bleViewModel.startScanning()
         } else
             enableBluetoothOption()

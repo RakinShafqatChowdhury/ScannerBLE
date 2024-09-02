@@ -2,10 +2,9 @@ package com.example.scannerble.helper
 
 import android.app.AlertDialog
 import android.app.Dialog
-import android.app.ProgressDialog
-import android.bluetooth.BluetoothGattCharacteristic
 import android.content.Context
 import android.view.LayoutInflater
+import android.widget.TextView
 import com.example.scannerble.R
 
 object Utils {
@@ -72,12 +71,13 @@ object Utils {
         return characteristicName[uuid] ?: "Unknown Characteristic ($uuid)"
     }
 
-    fun showProgressDialog(context: Context) {
+    fun showProgressDialog(context: Context, message: String? = "Loading...") {
         if (dialog == null) {
             val builder = AlertDialog.Builder(context)
             val inflater = LayoutInflater.from(context)
             val view = inflater.inflate(R.layout.custom_progress_loader, null)
-
+            val msg = view.findViewById<TextView>(R.id.progress_message)
+            msg.text =  message
             builder.setView(view)
             builder.setCancelable(false)
 

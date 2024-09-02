@@ -66,7 +66,7 @@ class ConnectBleActivity : AppCompatActivity(),
             ) {
                 return
             }
-            binding.bleDeviceName.text = selectedDevice.device?.name
+            binding.bleDeviceName.text = selectedDevice.device?.name ?: "Unknown"
             binding.bleDeviceAddress.text = selectedDevice.device?.address
 
             selectedDevice.device?.let { connectBleViewModel.connectToDevice(it) }
@@ -128,7 +128,7 @@ class ConnectBleActivity : AppCompatActivity(),
 
     private fun showValueDialog(value: String?) {
         val builder = AlertDialog.Builder(this)
-        builder.setTitle(readValueHeader)
+        builder.setTitle(readValueHeader.ifEmpty { "Value" })
         builder.setMessage(value)
         builder.setPositiveButton("OK") { dialog, _ ->
             dialog.dismiss()
