@@ -1,6 +1,5 @@
 package com.example.scannerble.views.connectedbledevice.repository
 
-import android.Manifest
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCallback
@@ -8,12 +7,10 @@ import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothProfile
 import android.content.Context
-import android.content.pm.PackageManager
 import android.os.Build
-import android.os.SystemClock
-import androidx.core.app.ActivityCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.example.scannerble.helper.Utils
 import java.util.UUID
 
 class ConnectBleRepository(private val context: Context) {
@@ -33,11 +30,8 @@ class ConnectBleRepository(private val context: Context) {
     val writeCharacteristicResponse: LiveData<String?> = _writeCharacteristicResponse
 
     fun connectToDevice(device: BluetoothDevice) {
-        if (ActivityCompat.checkSelfPermission(
-                context,
-                Manifest.permission.BLUETOOTH_CONNECT
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
+        if (!Utils.areBlPermissionsGranted(context)) {
+            Utils.showToastForMissingPermissions(context)
             return
         }
         bluetoothGatt = device.connectGatt(context, false, gattCallback)
@@ -49,12 +43,8 @@ class ConnectBleRepository(private val context: Context) {
             when (newState) {
                 BluetoothProfile.STATE_CONNECTED -> {
                     _connectionState.postValue("Connected")
-                    if (ActivityCompat.checkSelfPermission(
-                            context,
-                            Manifest.permission.BLUETOOTH_CONNECT
-                        ) != PackageManager.PERMISSION_GRANTED
-                    ) {
-
+                    if (!Utils.areBlPermissionsGranted(context)) {
+                        Utils.showToastForMissingPermissions(context)
                         return
                     }
                     gatt.discoverServices()
@@ -122,11 +112,8 @@ class ConnectBleRepository(private val context: Context) {
             val service = gatt.getService(serviceUuid)
             val characteristic = service?.getCharacteristic(characteristicUuid)
             if (characteristic != null) {
-                if (ActivityCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.BLUETOOTH_CONNECT
-                    ) != PackageManager.PERMISSION_GRANTED
-                ) {
+                if (!Utils.areBlPermissionsGranted(context)) {
+                    Utils.showToastForMissingPermissions(context)
                     return
                 }
                 gatt.readCharacteristic(characteristic)
@@ -139,11 +126,8 @@ class ConnectBleRepository(private val context: Context) {
         value: ByteArray,
         writeType: Int
     ) {
-        if (ActivityCompat.checkSelfPermission(
-                context,
-                Manifest.permission.BLUETOOTH_CONNECT
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
+        if (!Utils.areBlPermissionsGranted(context)) {
+            Utils.showToastForMissingPermissions(context)
             return
         }
         if (bluetoothGatt != null && bluetoothGatt!!.connect())
@@ -158,11 +142,8 @@ class ConnectBleRepository(private val context: Context) {
     }
 
     fun disconnect() {
-        if (ActivityCompat.checkSelfPermission(
-                context,
-                Manifest.permission.BLUETOOTH_CONNECT
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
+        if (!Utils.areBlPermissionsGranted(context)) {
+            Utils.showToastForMissingPermissions(context)
             return
         }
         bluetoothGatt?.close()

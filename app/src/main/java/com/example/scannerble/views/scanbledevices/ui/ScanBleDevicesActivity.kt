@@ -56,6 +56,7 @@ class ScanBleDevicesActivity : AppCompatActivity(), BleDeviceAdapter.ScannedBleD
 
     private var isScanning: Boolean = false
     private var isFirstLaunch: Boolean = true
+    private var isProgressDialogCancelled: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -90,7 +91,10 @@ class ScanBleDevicesActivity : AppCompatActivity(), BleDeviceAdapter.ScannedBleD
         }
         // Observe scanned devices
         scanBleViewModel.scannedDevices.observe(this) { devices ->
-            Utils.dismissProgressDialog()
+            if (!isProgressDialogCancelled && devices.isNotEmpty()) {
+                Utils.dismissProgressDialog()
+                isProgressDialogCancelled = true
+            }
             bleDeviceAdapter.updateDevices(devices)
         }
 
@@ -99,7 +103,7 @@ class ScanBleDevicesActivity : AppCompatActivity(), BleDeviceAdapter.ScannedBleD
         ) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
                 Toast.makeText(this, "Bluetooth enabled", Toast.LENGTH_SHORT).show()
-                scanBleViewModel.startScanning()
+                //scanBleViewModel.startScanning()
             } else {
                 Toast.makeText(this, "Please turn on bluetooth", Toast.LENGTH_SHORT).show()
             }

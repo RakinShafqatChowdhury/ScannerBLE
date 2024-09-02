@@ -63,11 +63,8 @@ class ConnectBleActivity : AppCompatActivity(),
 
         if (selectedDevice != null) {
             Utils.showProgressDialog(this)
-            if (ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.BLUETOOTH_CONNECT
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
+            if (!Utils.areBlPermissionsGranted(this)) {
+                Utils.showToastForMissingPermissions(this)
                 return
             }
             binding.bleDeviceName.text = selectedDevice.device?.name ?: "Unknown"

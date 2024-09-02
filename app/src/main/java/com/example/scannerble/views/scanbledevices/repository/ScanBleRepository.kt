@@ -1,6 +1,5 @@
 package com.example.scannerble.views.scanbledevices.repository
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothManager
 import android.bluetooth.le.ScanCallback
@@ -8,14 +7,13 @@ import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.Context
-import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.core.app.ActivityCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.example.scannerble.helper.Utils
 import com.example.scannerble.views.scanbledevices.model.ScannedBleDevice
 
 class ScanBleRepository(private val context: Context) {
@@ -50,34 +48,23 @@ class ScanBleRepository(private val context: Context) {
             return
         }
 
-        if (ActivityCompat.checkSelfPermission(
-                context, Manifest.permission.BLUETOOTH_SCAN
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            Toast.makeText(context, "Permissions not granted", Toast.LENGTH_SHORT).show()
+        if (!Utils.areBlPermissionsGranted(context)) {
+            Utils.showToastForMissingPermissions(context)
             return
         }
+
         val scanSettings = ScanSettings.Builder()
             .setScanMode(ScanSettings.SCAN_MODE_BALANCED)
             .build()
 
-        if (ActivityCompat.checkSelfPermission(
-                context,
-                Manifest.permission.BLUETOOTH_SCAN
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            return
-        }
         bleScanner.startScan(listOf<ScanFilter>(), scanSettings, bleScanCallback)
 
     }
 
     fun stopScanning() {
-        if (ActivityCompat.checkSelfPermission(
-                context,
-                Manifest.permission.BLUETOOTH_SCAN
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
+        if (bleScanner == null) return
+        if (!Utils.areBlPermissionsGranted(context)) {
+            Utils.showToastForMissingPermissions(context)
             return
         }
         bleScanner.stopScan(bleScanCallback)

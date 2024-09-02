@@ -1,10 +1,15 @@
 package com.example.scannerble.helper
 
+import android.Manifest
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import android.view.LayoutInflater
 import android.widget.TextView
+import android.widget.Toast
+import androidx.core.app.ActivityCompat
 import com.example.scannerble.R
 
 object Utils {
@@ -77,9 +82,9 @@ object Utils {
             val inflater = LayoutInflater.from(context)
             val view = inflater.inflate(R.layout.custom_progress_loader, null)
             val msg = view.findViewById<TextView>(R.id.progress_message)
-            msg.text =  message
+            msg.text = message
             builder.setView(view)
-            builder.setCancelable(false)
+            builder.setCancelable(true)
 
             dialog = builder.create()
             dialog?.show()
@@ -87,8 +92,39 @@ object Utils {
     }
 
     fun dismissProgressDialog() {
-        dialog?.dismiss()
+        if (dialog != null && dialog!!.isShowing) {
+            try {
+                dialog!!.dismiss()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
         dialog = null
     }
 
+    fun areBlPermissionsGranted(context: Context): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            ActivityCompat.checkSelfPermission(
+                context, Manifest.permission.BLUETOOTH_SCAN
+            ) == PackageManager.PERMISSION_GRANTED &&
+                    ActivityCompat.checkSelfPermission(
+                        context, Manifest.permission.BLUETOOTH_CONNECT
+                    ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            ActivityCompat.checkSelfPermission(
+                context, Manifest.permission.BLUETOOTH
+            ) == PackageManager.PERMISSION_GRANTED &&
+                    ActivityCompat.checkSelfPermission(
+                        context, Manifest.permission.BLUETOOTH_ADMIN
+                    ) == PackageManager.PERMISSION_GRANTED &&
+                    ActivityCompat.checkSelfPermission(
+                        context, Manifest.permission.ACCESS_FINE_LOCATION
+                    ) == PackageManager.PERMISSION_GRANTED
+        }
+    }
+
+    fun showToastForMissingPermissions(context: Context) {
+        Toast.makeText(context, "Permissions not granted", Toast.LENGTH_SHORT).show()
+    }
 }
+
