@@ -1,9 +1,12 @@
 package com.example.scannerble.views.connectedbledevice.ui
 
-import android.annotation.SuppressLint
+import android.Manifest
 import android.bluetooth.BluetoothGattCharacteristic
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.EditText
@@ -12,12 +15,14 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.scannerble.R
 import com.example.scannerble.databinding.ActivityConnectBleBinding
+import com.example.scannerble.helper.Utils
 import com.example.scannerble.views.connectedbledevice.adapters.BleDeviceCharacteristicsAdapter
 import com.example.scannerble.views.connectedbledevice.viewmodel.ConnectBleViewModel
 import com.example.scannerble.views.scanbledevices.model.ScannedBleDevice
@@ -30,7 +35,8 @@ class ConnectBleActivity : AppCompatActivity(),
     private lateinit var bleDeviceCharacteristicsAdapter: BleDeviceCharacteristicsAdapter
     private val characteristicsList = mutableListOf<BluetoothGattCharacteristic>()
 
-    @SuppressLint("MissingPermission")
+    private var readValueHeader: String = ""
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -43,32 +49,41 @@ class ConnectBleActivity : AppCompatActivity(),
             insets
         }
 
-        val obj: ScannedBleDevice? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            intent.getParcelableExtra("ScannedBleDevice", ScannedBleDevice::class.java)
-        } else {
-            @Suppress("DEPRECATION") // Suppress the deprecation warning for older API usage
-            intent.getParcelableExtra("ScannedBleDevice") as? ScannedBleDevice
+        val selectedDevice: ScannedBleDevice? =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                intent.getParcelableExtra("ScannedBleDevice", ScannedBleDevice::class.java)
+            } else {
+                @Suppress("DEPRECATION") // Suppress the deprecation warning for older API usage
+                intent.getParcelableExtra("ScannedBleDevice") as? ScannedBleDevice
+            }
+
+        if (selectedDevice != null) {
+            Utils.showProgressDialog(this)
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.BLUETOOTH_CONNECT
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                return
+            }
+            binding.bleDeviceName.text = selectedDevice.device?.name
+            binding.bleDeviceAddress.text = selectedDevice.device?.address
+
+            selectedDevice.device?.let { connectBleViewModel.connectToDevice(it) }
         }
 
-        if (obj != null) {
-            binding.bleDeviceName.text = obj.device?.name
-            binding.bleDeviceAddress.text = obj.device?.address
 
-            obj.device?.let { connectBleViewModel.connectToDevice(it) }
-        }
-
-
-        connectBleViewModel.connectionState.observe(this) {
-            if (it == "Connected") {
+        connectBleViewModel.connectionState.observe(this) { connectionState ->
+            if (connectionState == "Connected") {
                 binding.connectStatus.setTextColor(ContextCompat.getColor(this, R.color.green_700))
                 binding.bleDeviceImage.setImageResource(R.drawable.ic_bluetooth_connected)
                 Toast.makeText(this, "Device Connected", Toast.LENGTH_SHORT).show()
             } else {
                 binding.connectStatus.setTextColor(ContextCompat.getColor(this, R.color.red_700))
                 Toast.makeText(this, "Device Disconnected", Toast.LENGTH_SHORT).show()
-                finish()
+                Handler(Looper.getMainLooper()).postDelayed({ finish() }, 1000)
             }
-            binding.connectStatus.text = it
+            binding.connectStatus.text = connectionState
         }
 
         connectBleViewModel.services.observe(this) { services ->
@@ -97,21 +112,23 @@ class ConnectBleActivity : AppCompatActivity(),
             } else {
                 Toast.makeText(this, "Services not discovered", Toast.LENGTH_SHORT).show()
             }
+            Utils.dismissProgressDialog()
         }
 
-        connectBleViewModel.characteristicValue.observe(this) {
-            showValueDialog(it)
+        connectBleViewModel.characteristicValue.observe(this) { value ->
+            Utils.dismissProgressDialog()
+            showValueDialog(value)
         }
 
-        connectBleViewModel.writeCharacteristicResponse.observe(this) {
-            Toast.makeText(this, "$it", Toast.LENGTH_SHORT).show()
+        connectBleViewModel.writeCharacteristicResponse.observe(this) { response ->
+            Utils.dismissProgressDialog()
+            Toast.makeText(this, "$response", Toast.LENGTH_SHORT).show()
         }
-
     }
 
     private fun showValueDialog(value: String?) {
         val builder = AlertDialog.Builder(this)
-        builder.setTitle("Value")
+        builder.setTitle(readValueHeader)
         builder.setMessage(value)
         builder.setPositiveButton("OK") { dialog, _ ->
             dialog.dismiss()
@@ -126,13 +143,16 @@ class ConnectBleActivity : AppCompatActivity(),
 
         val editText = dialogView.findViewById<EditText>(R.id.writeDataET)
 
-        // Build the dialog
         val dialog = AlertDialog.Builder(this)
             .setView(dialogView)
             .setPositiveButton("Send") { dialogInterface, _ ->
-
+                Utils.showProgressDialog(this)
                 val input = editText.text.toString().toByteArray()
-                connectBleViewModel.writeCharacteristic(characteristicItem, input, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT)
+                connectBleViewModel.writeCharacteristic(
+                    characteristicItem,
+                    input,
+                    BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+                )
                 dialogInterface.dismiss()
             }
             .setNegativeButton("Cancel") { dialogInterface, _ ->
@@ -148,7 +168,12 @@ class ConnectBleActivity : AppCompatActivity(),
         connectBleViewModel.disconnect()
     }
 
-    override fun readClickListener(characteristicItem: BluetoothGattCharacteristic) {
+    override fun readClickListener(
+        characteristicItem: BluetoothGattCharacteristic,
+        characteristicName: String
+    ) {
+        Utils.showProgressDialog(this)
+        readValueHeader = characteristicName
         connectBleViewModel.readCharacteristic(
             characteristicItem.service.uuid,
             characteristicItem.uuid

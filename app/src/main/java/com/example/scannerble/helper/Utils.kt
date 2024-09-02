@@ -1,8 +1,15 @@
 package com.example.scannerble.helper
 
+import android.app.AlertDialog
+import android.app.Dialog
+import android.app.ProgressDialog
 import android.bluetooth.BluetoothGattCharacteristic
+import android.content.Context
+import android.view.LayoutInflater
+import com.example.scannerble.R
 
 object Utils {
+    private var dialog: Dialog? = null
 
     fun getCharacteristicName(uuid: String): String {
         val characteristicName = mapOf(
@@ -56,12 +63,32 @@ object Utils {
             // Environmental Sensing
             "00002a6e-0000-1000-8000-00805f9b34fb" to "Temperature",
             "00002a6f-0000-1000-8000-00805f9b34fb" to "Humidity",
-            "00002a70-0000-1000-8000-00805f9b34fb" to "Pressure"
+            "00002a70-0000-1000-8000-00805f9b34fb" to "Pressure",
 
             // Add more known UUIDs as needed
+            "00002b29-0000-1000-8000-00805f9b34fb" to "Client Supported Feature"
         )
 
         return characteristicName[uuid] ?: "Unknown Characteristic ($uuid)"
+    }
+
+    fun showProgressDialog(context: Context) {
+        if (dialog == null) {
+            val builder = AlertDialog.Builder(context)
+            val inflater = LayoutInflater.from(context)
+            val view = inflater.inflate(R.layout.custom_progress_loader, null)
+
+            builder.setView(view)
+            builder.setCancelable(false)
+
+            dialog = builder.create()
+            dialog?.show()
+        }
+    }
+
+    fun dismissProgressDialog() {
+        dialog?.dismiss()
+        dialog = null
     }
 
 }

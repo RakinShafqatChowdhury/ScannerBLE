@@ -52,7 +52,7 @@ class BleDeviceCharacteristicsAdapter(
         holder.writeButton.visibility = if (isWritable) View.VISIBLE else View.GONE
 
         holder.readButton.setOnClickListener {
-            readWriteClickListener.readClickListener(characteristic)
+            readWriteClickListener.readClickListener(characteristic, holder.bleServiceName.text.toString())
         }
         holder.writeButton.setOnClickListener {
             readWriteClickListener.writeClickListener(characteristic)
@@ -77,7 +77,7 @@ class BleDeviceCharacteristicsAdapter(
     }
 
     interface CharacteristicReadWriteClickListener {
-        fun readClickListener(characteristicItem: BluetoothGattCharacteristic)
+        fun readClickListener(characteristicItem: BluetoothGattCharacteristic, toString: String)
         fun writeClickListener(characteristicItem: BluetoothGattCharacteristic)
     }
 }
