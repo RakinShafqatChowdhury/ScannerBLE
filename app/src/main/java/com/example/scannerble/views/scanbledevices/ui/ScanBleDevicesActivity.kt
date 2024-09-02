@@ -54,6 +54,8 @@ class ScanBleDevicesActivity : AppCompatActivity(), BleDeviceAdapter.ScannedBleD
     private lateinit var bleDeviceAdapter: BleDeviceAdapter
     private lateinit var enableBluetoothLauncher: ActivityResultLauncher<Intent>
 
+    private var isScanning: Boolean = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -118,7 +120,6 @@ class ScanBleDevicesActivity : AppCompatActivity(), BleDeviceAdapter.ScannedBleD
                 BLUETOOTH_PERMISSION_REQUEST_CODE
             )
         } else {
-            // All permissions are already granted
             onBluetoothPermissionsGranted()
         }
     }
@@ -146,8 +147,12 @@ class ScanBleDevicesActivity : AppCompatActivity(), BleDeviceAdapter.ScannedBleD
 
     private fun onBluetoothPermissionsGranted() {
         if (isBluetoothEnabled()) {
-            Utils.showProgressDialog(this, "Scanning...")
-            bleViewModel.startScanning()
+            if (!isScanning) {
+                Utils.showProgressDialog(this, "Scanning...")
+                bleViewModel.startScanning()
+                isScanning = true
+            } else
+                Toast.makeText(this, "Scanning already in progress", Toast.LENGTH_SHORT).show()
         } else
             enableBluetoothOption()
     }
@@ -180,9 +185,28 @@ class ScanBleDevicesActivity : AppCompatActivity(), BleDeviceAdapter.ScannedBleD
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+        if (isScanning) {
+            bleViewModel.stopScanning()
+            isScanning = false
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (!isScanning) {
+            bleViewModel.startScanning()
+            isScanning = true
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        bleViewModel.stopScanning()
+        if (isScanning) {
+            bleViewModel.stopScanning()
+            isScanning = false
+        }
     }
 
 }

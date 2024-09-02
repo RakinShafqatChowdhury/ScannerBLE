@@ -77,7 +77,7 @@ class BleDeviceCharacteristicsAdapter(
     }
 
     interface CharacteristicReadWriteClickListener {
-        fun readClickListener(characteristicItem: BluetoothGattCharacteristic, toString: String)
+        fun readClickListener(characteristicItem: BluetoothGattCharacteristic, characteristicName: String)
         fun writeClickListener(characteristicItem: BluetoothGattCharacteristic)
     }
 }

@@ -10,19 +10,19 @@ import kotlinx.coroutines.launch
 
 class ScanBleViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val bleRepository = ScanBleRepository(application)
+    private val scanBleRepository = ScanBleRepository(application)
 
-    val scannedDevices: LiveData<List<ScannedBleDevice>> = bleRepository.scannedDevices
+    val scannedDevices: LiveData<List<ScannedBleDevice>> = scanBleRepository.scannedDevices
 
     fun startScanning() {
         viewModelScope.launch {
-            bleRepository.startScanning()
+            scanBleRepository.startScanning()
         }
     }
 
     fun stopScanning() {
         viewModelScope.launch {
-            bleRepository.stopScanning()
+            scanBleRepository.stopScanning()
         }
     }
 }
